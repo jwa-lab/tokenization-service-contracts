@@ -22,7 +22,7 @@ type parameter is
     Add_item of item_metadata
 |   Assign_item_proxy of assign_parameter
 |   Update_item of item_metadata
-|   Freeze_item of nat
+|   Freeze_item of nat 
 
 type storage is record [
     owner: address;
