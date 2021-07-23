@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.0.14
+
+-   Add missing type for transfer_item method
+
 ## 0.0.13
 
--   Fix npm package entrypoint 
+-   Fix npm package entrypoint
 
 ## 0.0.12
 
