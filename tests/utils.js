@@ -1,5 +1,3 @@
-const { isConstructorDeclaration } = require("typescript");
-
 async function getInventoryItemAt(storage, itemId, instanceNumber) {
     const instance_map = await storage.get(String(itemId));
     const entries = Object.fromEntries(instance_map.entries());
