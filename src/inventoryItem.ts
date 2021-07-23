@@ -22,6 +22,12 @@ export interface InventoryContract
             item_id: number
         ): ContractMethod<ContractProvider>;
 
+        transfer_item(
+            instance_number: number,
+            item_id: number,
+            new_inventory_address: string
+        ): ContractMethod<ContractProvider>;
+
         update_item(
             data: MichelsonMap<string, string>,
             instance_number: number,

@@ -1,6 +1,6 @@
 {
     "name": "@jwalab/tokenization-service-contracts",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "files": [
         "index.js",
         "dist",
