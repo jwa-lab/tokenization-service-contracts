@@ -14,7 +14,7 @@ jobs:
         steps:
             - checkout
             - run: npm install
-            - run: docker run -d -p 20000:20000 -e block_time=2 tqtezos/flextesa:20210602 flobox start
+            - run: docker run -d -p 20000:20000 -e block_time=2 tqtezos/flextesa:20210602 granabox start
             - run: npm run compile
             - run: sleep 20
             - run: npm run test

@@ -89,7 +89,7 @@ The Tezos contracts are written in the `./contracts` folder.
 Start a tezos node first, use minilab or
 
 ```
-docker run -d -p 20000:20000 tqtezos/flextesa:20210602 flobox start
+docker run -d -p 20000:20000 -e block_time=2 tqtezos/flextesa:20210602 granabox start
 ```
 
 Then run the tests:
@@ -97,3 +97,25 @@ Then run the tests:
 ```
 npm run test
 ```
+
+### Cost estimation:
+
+#### Granada:
+
+warehouse origination cost 0.451211ꜩ
+inventory origination cost 0.386428ꜩ
+create warehouse item cost 0.031179ꜩ
+Update same size warehouse item cost 0.000706ꜩ
+Update smaller size warehouse item cost 0.00068ꜩ
+Update bigger size warehouse item cost 0.017023ꜩ
+Transfer item to inventory 0.020832ꜩ
+
+#### Florence:
+
+warehouse origination cost 0.451804ꜩ
+inventory origination cost 0.386914ꜩ
+create warehouse item cost 0.03179ꜩ
+Update same size warehouse item cost 0.001335ꜩ
+Update smaller size warehouse item cost 0.001305ꜩ
+Update bigger size warehouse item cost 0.017653ꜩ
+Transfer item to inventory 0.022413ꜩ
