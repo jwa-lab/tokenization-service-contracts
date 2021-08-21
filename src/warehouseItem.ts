@@ -10,16 +10,15 @@ import { BigNumber } from "bignumber.js";
 export interface MichelsonWarehouseItem {
     available_quantity: BigNumber;
     data: MichelsonMap<string, string>;
+    frozen: boolean;
     item_id: BigNumber;
     name: string;
-    no_update_after: string | undefined;
     total_quantity: BigNumber;
     [key: string]:
         | MichelsonMap<string, string>
+        | boolean
         | string
-        | string
-        | BigNumber
-        | undefined;
+        | BigNumber;
 }
 
 export type WarehouseBigMap = MichelsonMap<string, MichelsonWarehouseItem>;
@@ -37,15 +36,16 @@ export interface WarehouseContract
         add_item(
             available_quantity: number,
             data: MichelsonMap<string, string>,
+            frozen: boolean,
             item_id: number,
             name: string,
-            no_update_after: string | undefined,
             total_quantity: number
         ): ContractMethod<ContractProvider>;
 
         update_item(
             available_quantity: number,
             data: MichelsonMap<string, string>,
+            frozen: boolean,
             item_id: number,
             name: string,
             no_update_after: string | undefined,
@@ -68,29 +68,33 @@ export interface WarehouseData {
 
 export interface JSONWarehouseItem {
     available_quantity: number;
-    no_update_after: string | undefined;
+    data: { [k: string]: string };
+    frozen: boolean;
     item_id: number;
     name: string;
-    data: { [k: string]: string };
     total_quantity: number;
-    [key: string]: unknown;
+    [key: string]: 
+        | { [k: string]: string }
+        | boolean
+        | string
+        | number;
 }
 
 export type LinearWarehouseItem = [
     number,
     MichelsonMap<string, string>,
+    boolean,
     number,
     string,
-    string | undefined,
     number
 ];
 
 export class WarehouseItem {
     readonly available_quantity: BigNumber;
     readonly data: WarehouseData;
+    readonly frozen: boolean;
     readonly item_id: BigNumber;
     readonly name: string;
-    readonly no_update_after: string | undefined;
     readonly total_quantity: BigNumber;
 
     constructor(object: { [k: string]: unknown }) {
@@ -99,9 +103,9 @@ export class WarehouseItem {
             "available_quantity"
         ) as BigNumber;
         this.data = getKey(object, "data") as WarehouseData;
+        this.frozen = getKey(object, "frozen") as boolean;
         this.item_id = getKey(object, "item_id") as BigNumber;
         this.name = object.name as string;
-        this.no_update_after = object.no_update_after as string | undefined;
         this.total_quantity = getKey(object, "total_quantity") as BigNumber;
 
         this.validateData(this.data);
@@ -111,9 +115,9 @@ export class WarehouseItem {
         const warehouseItem = {
             available_quantity: this.available_quantity,
             data: MichelsonMap.fromLiteral(this.data),
+            frozen: this.frozen,
             item_id: this.item_id,
             name: this.name,
-            no_update_after: this.no_update_after,
             total_quantity: this.total_quantity
         } as MichelsonWarehouseItem;
 
@@ -125,13 +129,11 @@ export class WarehouseItem {
     static fromMichelson(michelson: MichelsonWarehouseItem): JSONWarehouseItem {
         return {
             available_quantity: michelson.available_quantity.toNumber(),
-            no_update_after: michelson.no_update_after
-                ? getISODateNoMs(new Date(michelson.no_update_after))
-                : undefined,
-            name: michelson.name.toString(),
+            data: Object.fromEntries(michelson.data.entries()),
+            frozen: michelson.frozen,
             item_id: michelson.item_id.toNumber(),
-            total_quantity: michelson.total_quantity.toNumber(),
-            data: Object.fromEntries(michelson.data.entries())
+            name: michelson.name.toString(),
+            total_quantity: michelson.total_quantity.toNumber()
         };
     }
 
@@ -150,9 +152,4 @@ function getKey(object: { [k: string]: unknown }, key: string) {
     } else {
         return object[key];
     }
-}
-
-function getISODateNoMs(date = new Date()) {
-    date.setMilliseconds(0);
-    return date.toISOString();
 }

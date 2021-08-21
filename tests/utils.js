@@ -18,20 +18,13 @@ function inventoryItemToObject(itemData) {
 
 function warehouseItemToObject(item) {
     return {
-        no_update_after: item.no_update_after
-            ? getISODateNoMs(new Date(item.no_update_after))
-            : undefined,
+        available_quantity: item.available_quantity.toNumber(),
+        data: Object.fromEntries(item.data.entries()),
+        frozen: item.frozen,
         item_id: item.item_id.toNumber(),
         name: item.name,
-        total_quantity: item.total_quantity.toNumber(),
-        available_quantity: item.available_quantity.toNumber(),
-        data: Object.fromEntries(item.data.entries())
+        total_quantity: item.total_quantity.toNumber()
     };
-}
-
-function getISODateNoMs(date = new Date()) {
-    date.setMilliseconds(0);
-    return date.toISOString();
 }
 
 async function originateContract(tezos, code, storage) {
@@ -48,7 +41,6 @@ async function originateContract(tezos, code, storage) {
 }
 
 module.exports = {
-    getISODateNoMs,
     warehouseItemToObject,
     inventoryItemToObject,
     getInventoryItemAt,
