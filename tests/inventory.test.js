@@ -29,22 +29,23 @@ describe("Given Inventory is deployed", () => {
     describe("When assigning a new item", () => {
         beforeAll(async () => {
             const operation = await inventoryInstance.methods
-                .assign_item_inventory(
+                .assign_item(
                     MichelsonMap.fromLiteral({
                         XP: "97"
                     }),
                     12,
-                    2
+                    2,
+                    "user_123"
                 )
                 .send();
 
-            await operation.confirmation();
+            await operation.confirmation(1);
 
             storage = await inventoryInstance.storage();
         });
 
-        it("Then assigns the item to the inventory", async () => {
-            const obj = await getInventoryItemAt(storage, 2, 12);
+        it("Then assigns the item to the user", async () => {
+            const obj = await getInventoryItemAt(storage, "user_123", 2, 12);
 
             expect(obj).toEqual({
                 data: {
@@ -53,25 +54,26 @@ describe("Given Inventory is deployed", () => {
             });
         });
 
-        describe("When updating the item", () => {
+        describe("When I update this instance", () => {
             beforeAll(async () => {
                 const operation = await inventoryInstance.methods
-                    .update_item(
-                        MichelsonMap.fromLiteral({
-                            XP: "98"
-                        }),
-                        12,
-                        2
-                    )
-                    .send();
+                .update_item(
+                    MichelsonMap.fromLiteral({
+                        XP: "98"
+                    }),
+                    12,
+                    2,
+                    "user_123"
+                )
+                .send();
 
                 await operation.confirmation(1);
 
                 storage = await inventoryInstance.storage();
             });
 
-            it("Then updates the assigned item", async () => {
-                const obj = await getInventoryItemAt(storage, 2, 12);
+            it("Then updates the instance", async () => {
+                const obj = await getInventoryItemAt(storage, "user_123", 2, 12);
 
                 expect(obj).toEqual({
                     data: {
@@ -81,56 +83,122 @@ describe("Given Inventory is deployed", () => {
             });
         });
 
-        it("Then fails When updating an unassigned item", async () => {
-            try {
-                const operation = await inventoryInstance.methods
-                    .update_item(
+        describe("And When I assign it again", () => {
+            it("Then fails with an error", async () => {
+                try {
+                    const operation = await inventoryInstance.methods
+                    .assign_item(
                         MichelsonMap.fromLiteral({
-                            XP: "98"
+                            XP: "97"
                         }),
                         12,
-                        3
+                        2,
+                        "user_123"
                     )
                     .send();
 
-                await operation.confirmation(1);
+                    await operation.confirmation(1);
 
-                console.error(
-                    "Will fail: Assign_Item should throw an Error if the item isn't assign to this inventory"
-                );
+                    storage = await inventoryInstance.storage();
 
-                fail(
-                    "Assign_Item should throw an Error if the item isn't assigned to this inventory"
-                );
-            } catch (err) {
-                expect(err.message).toEqual("NO_SUCH_ITEM_IN_INVENTORY");
-            }
+                    console.error(
+                        "Will fail: Assign_Item should throw an Error if the item and instance have already been assigned"
+                    );
+    
+                    fail(
+                        "Assign_Item should throw an Error if the item and instance have already been assigned"
+                    );
+                } catch (err) {
+                    expect(err.message).toBe("ITEM_INSTANCE_ALREADY_ASSIGNED");
+                }
+            });
         });
 
-        it("Then fails When updating an unassigned item instance", async () => {
-            try {
+        describe("When I assign another instance of the same item", () => {
+            beforeAll(async () => {
                 const operation = await inventoryInstance.methods
-                    .update_item(
+                    .assign_item(
                         MichelsonMap.fromLiteral({
-                            XP: "98"
+                            XP: "97"
                         }),
                         13,
-                        2
+                        2,
+                        "user_123"
                     )
                     .send();
-
+    
                 await operation.confirmation(1);
+    
+                storage = await inventoryInstance.storage();
+            });
+    
+            it("Then assigns the item to the user", async () => {
+                const obj = await getInventoryItemAt(storage, "user_123", 2, 13);
+    
+                expect(obj).toEqual({
+                    data: {
+                        XP: "97"
+                    }
+                });
+            });
 
-                console.error(
-                    "Will fail: Assign_Item should throw an Error if the item instance isn't assign to this inventory"
-                );
+            describe("When I update this instance", () => {
+                beforeAll(async () => {
+                    const operation = await inventoryInstance.methods
+                    .update_item(
+                        MichelsonMap.fromLiteral({
+                            XP: "99"
+                        }),
+                        13,
+                        2,
+                        "user_123"
+                    )
+                    .send();
+    
+                    await operation.confirmation(1);
+    
+                    storage = await inventoryInstance.storage();
+                });
+    
+                it("Then updates the instance", async () => {
+                    const obj = await getInventoryItemAt(storage, "user_123", 2, 13);
+    
+                    expect(obj).toEqual({
+                        data: {
+                            XP: "99"
+                        }
+                    });
+                });
+            });
+        });
 
-                fail(
-                    "Assign_Item should throw an Error if the item instance isn't assigned to this inventory"
-                );
-            } catch (err) {
-                expect(err.message).toEqual("NO_SUCH_INSTANCE_NUMBER");
-            }
+        describe("When I assign another item to the same user", () => {
+            beforeAll(async () => {
+                const operation = await inventoryInstance.methods
+                    .assign_item(
+                        MichelsonMap.fromLiteral({
+                            XP: "97"
+                        }),
+                        1,
+                        3,
+                        "user_123"
+                    )
+                    .send();
+    
+                await operation.confirmation(1);
+    
+                storage = await inventoryInstance.storage();
+            });
+    
+            it("Then assigns the new item to the user", async () => {
+                const obj = await getInventoryItemAt(storage, "user_123", 3, 1);
+    
+                expect(obj).toEqual({
+                    data: {
+                        XP: "97"
+                    }
+                });
+            });
         });
     });
 });

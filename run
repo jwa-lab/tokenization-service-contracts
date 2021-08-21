@@ -12,7 +12,7 @@ function compile-contract() {
 function compile-contracts() {
     mkdir -p ./build/contracts
     compile-contract "Inventory.ligo" "main" > ${PWD}/build/contracts/inventory.json
-    compile-contract "Warehouse.ligo" "main" > ${PWD}/build/contracts/warehouse.json
+    # compile-contract "Warehouse.ligo" "main" > ${PWD}/build/contracts/warehouse.json
 }
 
 function prepare-dist() {

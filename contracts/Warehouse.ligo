@@ -30,8 +30,6 @@ type storage is record [
     warehouse: big_map (nat, item_metadata);
 ]
 
-[@inline] const ignore_item_metadata = [%Michelson ({| {DROP;UNIT} |} : item_metadata -> unit)]
-
 type return is list (operation) * storage;
 
 function add (var item: item_metadata; var storage: storage): return is
@@ -40,7 +38,7 @@ function add (var item: item_metadata; var storage: storage): return is
 
         case found_item of
             None -> storage.warehouse := Big_map.add (item.item_id, item, storage.warehouse)
-        |   Some (i) -> block { ignore_item_metadata (i); failwith ("ITEM_ID_ALREADY_EXISTS")}
+        |   Some (_i) -> failwith ("ITEM_ID_ALREADY_EXISTS")
         end;
     } with ((nil: list (operation)), storage)
 
