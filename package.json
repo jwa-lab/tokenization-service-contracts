@@ -42,10 +42,8 @@
         "url": "https://github.com/jwa-studios/tokenization-service-contracts/issues"
     },
     "homepage": "https://github.com/jwa-studios/tokenization-service-contracts#readme",
-    "peerDependencies": {
-        "@taquito/taquito": "^9.2.0"
-    },
     "dependencies": {
+        "@taquito/taquito": "^10.1.0",
         "lint": "^0.7.0"
     }
 }
