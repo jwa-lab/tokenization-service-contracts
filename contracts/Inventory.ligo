@@ -8,7 +8,7 @@ type storage is record [
 
 type remove_item_parameter is nat * nat;
 
-type transfer_parameter is record[
+type transfer_parameter is record [
     instance_number: nat;
     item_id: nat;
     new_inventory_address: address
