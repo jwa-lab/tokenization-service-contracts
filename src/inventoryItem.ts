@@ -9,7 +9,7 @@ export type JSONInventoryItem = { [k: string]: string };
 
 export type InventoryStorage = MichelsonMap<
     string,
-    MichelsonMap<string, MichelsonMap<string, string>>
+    MichelsonMap<string, MichelsonMap<string, MichelsonMap<string, string>>>
 >;
 
 export interface InventoryContract
@@ -19,19 +19,15 @@ export interface InventoryContract
         assign_item(
             data: MichelsonMap<string, string>,
             instance_number: number,
-            item_id: number
-        ): ContractMethod<ContractProvider>;
-
-        transfer_item(
-            instance_number: number,
             item_id: number,
-            new_inventory_address: string
+            user_id: string
         ): ContractMethod<ContractProvider>;
 
         update_item(
             data: MichelsonMap<string, string>,
             instance_number: number,
-            item_id: number
+            item_id: number,
+            user_id: string
         ): ContractMethod<ContractProvider>;
     };
 }

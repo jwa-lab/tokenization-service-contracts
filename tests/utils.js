@@ -1,13 +1,13 @@
-async function getInventoryItemAt(storage, itemId, instanceNumber) {
-    const instance_map = await storage.get(String(itemId));
-    const entries = Object.fromEntries(instance_map.entries());
-    return inventoryItemToObject(entries[String(instanceNumber)]);
+async function getInventoryItemAt(storage, userId, itemId, instanceNumber) {
+    const user_inventory = await storage.get(userId);
+    const instance_map = Object.fromEntries(user_inventory.entries())[String(itemId)];
+    return inventoryItemToObject(Object.fromEntries(instance_map.entries())[String(instanceNumber)]);
 }
 
-async function hasInventoryItemAt(storage, itemId, instanceNumber) {
-    const instance_map = await storage.get(String(itemId));
-    const entries = Object.fromEntries(instance_map.entries());
-    return Boolean(entries[String(instanceNumber)]);
+async function hasInventoryItemAt(storage, userId, itemId, instanceNumber) {
+    const user_inventory = await storage.get(userId);
+    const instance_map = Object.fromEntries(user_inventory.entries())[String(itemId)];
+    return Boolean(Object.fromEntries(instance_map.entries())[String(instanceNumber)]);
 }
 
 function inventoryItemToObject(itemData) {
@@ -34,6 +34,8 @@ async function originateContract(tezos, code, storage) {
     });
 
     const { contractAddress } = originatonOperation;
+
+    console.log('contract deployed at', contractAddress);
 
     await originatonOperation.confirmation(1);
 
