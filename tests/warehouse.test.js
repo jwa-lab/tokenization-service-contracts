@@ -3,7 +3,6 @@ const { InMemorySigner } = require("@taquito/signer");
 
 const {
     warehouseItemToObject,
-    getISODateNoMs,
     originateContract
 } = require("./utils");
 
@@ -57,9 +56,9 @@ describe("Given Warehouse is deployed", () => {
                     MichelsonMap.fromLiteral({
                         XP: "97"
                     }),
+                    false,
                     0,
                     "Christiano Ronaldo",
-                    undefined,
                     10
                 )
                 .send();
@@ -78,9 +77,9 @@ describe("Given Warehouse is deployed", () => {
                 data: {
                     XP: "97"
                 },
+                frozen: false,
                 item_id: 0,
                 name: "Christiano Ronaldo",
-                no_update_after: undefined,
                 total_quantity: 10
             });
         });
@@ -94,9 +93,9 @@ describe("Given Warehouse is deployed", () => {
                             MichelsonMap.fromLiteral({
                                 XP: "97"
                             }),
+                            false,
                             0,
                             "Christiano Ronaldo",
-                            undefined,
                             10
                         )
                         .send();
@@ -125,9 +124,9 @@ describe("Given Warehouse is deployed", () => {
                             XP: "98",
                             CLUB: "JUVE"
                         }),
+                        false,
                         0,
                         "Christiano Ronaldo",
-                        undefined,
                         100
                     )
                     .send();
@@ -145,9 +144,9 @@ describe("Given Warehouse is deployed", () => {
                         XP: "98",
                         CLUB: "JUVE"
                     },
+                    frozen: false,
                     item_id: 0,
                     name: "Christiano Ronaldo",
-                    no_update_after: undefined,
                     total_quantity: 100
                 });
             });
@@ -162,9 +161,9 @@ describe("Given Warehouse is deployed", () => {
                             MichelsonMap.fromLiteral({
                                 XP: "97"
                             }),
+                            false,
                             1234,
                             "Christiano Ronaldo",
-                            undefined,
                             10
                         )
                         .send();
@@ -183,165 +182,11 @@ describe("Given Warehouse is deployed", () => {
                 }
             });
         });
-    });
-
-    describe("When adding a new item without time left for modifications", () => {
-        let storage;
-        let noUpdateAfter;
-
-        beforeAll(async () => {
-            const pastDate = new Date();
-            pastDate.setHours(pastDate.getHours() - 1);
-            noUpdateAfter = getISODateNoMs(pastDate);
-
-            const operation = await warehouseInstance.methods
-                .add_item(
-                    10,
-                    MichelsonMap.fromLiteral({
-                        XP: "97"
-                    }),
-                    100,
-                    "Christiano Ronaldo",
-                    noUpdateAfter,
-                    10
-                )
-                .send();
-
-            await operation.confirmation(1);
-
-            storage = await warehouseInstance.storage();
-        });
-
-        it("Then has a matching `no_update_after` timestamp", async () => {
-            const item = await storage.warehouse.get("100");
-            const obj = warehouseItemToObject(item);
-
-            expect(obj).toEqual({
-                available_quantity: 10,
-                data: {
-                    XP: "97"
-                },
-                item_id: 100,
-                name: "Christiano Ronaldo",
-                no_update_after: noUpdateAfter,
-                total_quantity: 10
-            });
-        });
-
-        it("Then may not be modified anymore", async () => {
-            try {
-                const operation = await warehouseInstance.methods
-                    .update_item(
-                        10,
-                        MichelsonMap.fromLiteral({
-                            XP: "98"
-                        }),
-                        100,
-                        "Christiano Ronaldo",
-                        undefined,
-                        10
-                    )
-                    .send();
-
-                await operation.confirmation(1);
-
-                console.error(
-                    "Will fail: Update_Item should throw an Error if the items `no_update_after` timestamp is in the past"
-                );
-
-                fail(
-                    "Update_Item should throw an Error if the items `no_update_after` timestamp is in the past"
-                );
-            } catch (err) {
-                expect(err.message).toEqual("ITEM_IS_FROZEN");
-            }
-        });
-    });
-
-    describe("When adding a new item with time left for modifications", () => {
-        let storage;
-        let noUpdateAfter;
-
-        beforeAll(async () => {
-            const futureDate = new Date();
-            futureDate.setHours(futureDate.getHours() + 1);
-            noUpdateAfter = getISODateNoMs(futureDate);
-
-            const operation = await warehouseInstance.methods
-                .add_item(
-                    10,
-                    MichelsonMap.fromLiteral({
-                        XP: "97"
-                    }),
-                    200,
-                    "Christiano Ronaldo",
-                    noUpdateAfter,
-                    10
-                )
-                .send();
-
-            await operation.confirmation(1);
-
-            storage = await warehouseInstance.storage();
-        });
-
-        it("Then has a matching `no_update_after` timestamp", async () => {
-            const item = await storage.warehouse.get("200");
-            const obj = warehouseItemToObject(item);
-
-            expect(obj).toEqual({
-                available_quantity: 10,
-                data: {
-                    XP: "97"
-                },
-                item_id: 200,
-                name: "Christiano Ronaldo",
-                no_update_after: noUpdateAfter,
-                total_quantity: 10
-            });
-        });
-
-        describe("And when I modify it again", () => {
-            beforeAll(async () => {
-                const operation = await warehouseInstance.methods
-                    .update_item(
-                        10,
-                        MichelsonMap.fromLiteral({
-                            XP: "98"
-                        }),
-                        200,
-                        "Christiano Ronaldo",
-                        noUpdateAfter,
-                        10
-                    )
-                    .send();
-
-                await operation.confirmation(1);
-
-                storage = await warehouseInstance.storage();
-            });
-
-            it("Then allows me to update it", async () => {
-                const item = await storage.warehouse.get("200");
-                const obj = warehouseItemToObject(item);
-
-                expect(obj).toEqual({
-                    available_quantity: 10,
-                    data: {
-                        XP: "98"
-                    },
-                    item_id: 200,
-                    name: "Christiano Ronaldo",
-                    no_update_after: noUpdateAfter,
-                    total_quantity: 10
-                });
-            });
-        });
 
         describe("And when I freeze it", () => {
             beforeAll(async () => {
                 const operation = await warehouseInstance.methods
-                    .freeze_item(200)
+                    .freeze_item(0)
                     .send();
                 await operation.confirmation(1);
             });
@@ -354,9 +199,9 @@ describe("Given Warehouse is deployed", () => {
                             MichelsonMap.fromLiteral({
                                 XP: "99"
                             }),
-                            200,
+                            true,
+                            0,
                             "Christiano Ronaldo",
-                            undefined,
                             10
                         )
                         .send();
@@ -364,11 +209,11 @@ describe("Given Warehouse is deployed", () => {
                     await operation.confirmation(1);
 
                     console.error(
-                        "Will fail: Update_Item should throw an Error if the items `no_update_after` timestamp is in the past"
+                        "Will fail: Update_Item should throw an Error if the item is frozen"
                     );
 
                     fail(
-                        "Update_Item should throw an Error if the items `no_update_after` timestamp is in the past"
+                        "Update_Item should throw an Error if the item is frozen"
                     );
                 } catch (err) {
                     expect(err.message).toEqual("ITEM_IS_FROZEN");
@@ -376,26 +221,66 @@ describe("Given Warehouse is deployed", () => {
             });
 
             describe("When freezing an item that is already frozen", () => {
-                it("Then fails with an explicit error", async () => {
-                    try {
-                        const operation = await warehouseInstance.methods
-                            .freeze_item(200)
-                            .send();
+                it("Then no error is thrown", async () => {
+                    const operation = await warehouseInstance.methods
+                        .freeze_item(0)
+                        .send();
 
-                        await operation.confirmation(1);
-
-                        console.error(
-                            "Will fail: Freeze_Item should throw an Error if item is already frozen as it should be immutable"
-                        );
-
-                        fail(
-                            "Freeze Item should throw an Error if item is already frozen as it should be immutable"
-                        );
-                    } catch (err) {
-                        expect(err.message).toEqual("ITEM_IS_FROZEN");
-                    }
+                    await operation.confirmation(1);
                 });
             });
+        });
+    });
+
+    describe("When adding a frozen item", () => {
+        let storage;
+
+        beforeAll(async () => {
+            const operation = await warehouseInstance.methods
+                .add_item(
+                    10,
+                    MichelsonMap.fromLiteral({
+                        XP: "97"
+                    }),
+                    true,
+                    100,
+                    "Christiano Ronaldo",
+                    10
+                )
+                .send();
+
+            await operation.confirmation(1);
+
+            storage = await warehouseInstance.storage();
+        });
+
+        it("Then may not be modified anymore", async () => {
+            try {
+                const operation = await warehouseInstance.methods
+                    .update_item(
+                        10,
+                        MichelsonMap.fromLiteral({
+                            XP: "98"
+                        }),
+                        true,
+                        100,
+                        "Christiano Ronaldo",
+                        10
+                    )
+                    .send();
+
+                await operation.confirmation(1);
+
+                console.error(
+                    "Will fail: Update_Item should throw an Error if the item is frozen"
+                );
+
+                fail(
+                    "Update_Item should throw an Error if the item is frozen"
+                );
+            } catch (err) {
+                expect(err.message).toEqual("ITEM_IS_FROZEN");
+            }
         });
     });
 });
