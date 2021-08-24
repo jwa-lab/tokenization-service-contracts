@@ -1,18 +1,16 @@
 const { TezosToolkit, MichelsonMap } = require("@taquito/taquito");
 const { InMemorySigner } = require("@taquito/signer");
 
-const inventoryContract = require("../build/contracts/inventory.json");
 const warehouseContract = require("../build/contracts/warehouse.json");
 
 const {
     warehouseItemToObject,
-    getInventoryItemAt,
+    getWarehouseInstanceAt,
     originateContract
 } = require("./utils");
 
-describe("Given Warehouse and Inventory are deployed", () => {
+describe("Given Warehouse is deployed", () => {
     let warehouseInstance;
-    let inventoryInstance;
     let tezos;
 
     beforeAll(async () => {
@@ -27,17 +25,12 @@ describe("Given Warehouse and Inventory are deployed", () => {
         warehouseInstance = await originateContract(tezos, warehouseContract, {
             owner: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
             version: "1",
-            warehouse: MichelsonMap.fromLiteral({})
+            items: MichelsonMap.fromLiteral({}),
+            instances: MichelsonMap.fromLiteral({})
         });
-
-        inventoryInstance = await originateContract(
-            tezos,
-            inventoryContract,
-            MichelsonMap.fromLiteral({})
-        );
     });
 
-    describe("When I add a new item with a quantity of 1", () => {
+    describe("When I add a new frozen item with a quantity of 1", () => {
         beforeAll(async () => {
             const operation = await warehouseInstance.methods
                 .add_item(
@@ -45,9 +38,9 @@ describe("Given Warehouse and Inventory are deployed", () => {
                     MichelsonMap.fromLiteral({
                         XP: "97"
                     }),
-                    9,
+                    true,
+                    0,
                     "Karim Benzema",
-                    undefined,
                     1
                 )
                 .send();
@@ -55,31 +48,34 @@ describe("Given Warehouse and Inventory are deployed", () => {
             await operation.confirmation(1);
         });
 
-        describe("And I assign it to an inventory", () => {
-            let inventoryStorage;
+        describe("And I assign an instance", () => {
             let warehouseStorage;
 
             beforeAll(async () => {
                 const operation = await warehouseInstance.methods
-                    .assign_item_proxy(inventoryInstance.address, 9, 1)
+                    .assign_item(0, 1, "user_123")
                     .send();
 
                 await operation.confirmation(1);
 
-                inventoryStorage = await inventoryInstance.storage();
                 warehouseStorage = await warehouseInstance.storage();
             });
 
-            it("Then assigns the item to the inventory AND the data field is empty", async () => {
-                const obj = await getInventoryItemAt(inventoryStorage, 9, 1);
+            it("Then creates the instance AND the data field is empty", async () => {
+                const obj = await getWarehouseInstanceAt(
+                    warehouseStorage,
+                    0,
+                    1
+                );
 
                 expect(obj).toEqual({
+                    user_id: "user_123",
                     data: {}
                 });
             });
 
             it("Then decrements the available quantity for the item", async () => {
-                const item = await warehouseStorage.warehouse.get("9");
+                const item = await warehouseStorage.items.get("0");
 
                 const obj = warehouseItemToObject(item);
 
@@ -88,9 +84,9 @@ describe("Given Warehouse and Inventory are deployed", () => {
                     data: {
                         XP: "97"
                     },
-                    item_id: 9,
+                    frozen: true,
+                    item_id: 0,
                     name: "Karim Benzema",
-                    no_update_after: undefined,
                     total_quantity: 1
                 });
             });
@@ -98,8 +94,8 @@ describe("Given Warehouse and Inventory are deployed", () => {
             describe("When I assign the item again", () => {
                 it("Then fails since there are no available items anymore", async () => {
                     try {
-                        const operation = await warehouseInstance.methods
-                            .assign_item_proxy(inventoryInstance.address, 9, 1)
+                        await warehouseInstance.methods
+                            .assign_item(0, 2, "user_123")
                             .send();
 
                         console.error(
@@ -116,17 +112,17 @@ describe("Given Warehouse and Inventory are deployed", () => {
             });
         });
 
-        describe("When I assign an item to an inventory that doesn't exist", () => {
+        describe("When I add a non frozen item with a quantity of 1", () => {
             beforeAll(async () => {
                 const operation = await warehouseInstance.methods
                     .add_item(
                         1,
                         MichelsonMap.fromLiteral({
-                            XP: "0"
+                            XP: "97"
                         }),
-                        20,
-                        "An Item",
-                        undefined,
+                        false,
+                        1,
+                        "Karim Benzema",
                         1
                     )
                     .send();
@@ -134,29 +130,68 @@ describe("Given Warehouse and Inventory are deployed", () => {
                 await operation.confirmation(1);
             });
 
-            it("Then fails with an explicit error", async () => {
+            describe("And I assign an instance", () => {
+                it("Then fails with an error", async () => {
+                    try {
+                        await warehouseInstance.methods
+                            .assign_item(1, 1, "user_123")
+                            .send();
+                    } catch (err) {
+                        expect(err.message).toEqual(
+                            "ITEM_MUST_BE_FROZEN_BEFORE_ASSIGN"
+                        );
+                    }
+                });
+            });
+        });
+    });
+
+    describe("When I add a new frozen item with a quantity of 2", () => {
+        beforeAll(async () => {
+            const addOperation = await warehouseInstance.methods
+                .add_item(
+                    2,
+                    MichelsonMap.fromLiteral({
+                        XP: "97"
+                    }),
+                    true,
+                    2,
+                    "Karim Benzema",
+                    2
+                )
+                .send();
+
+            await addOperation.confirmation(1);
+
+            const assignOperation = await warehouseInstance.methods
+                .assign_item(2, 1, "user_123")
+                .send();
+
+            await assignOperation.confirmation(1);
+        });
+
+        describe("And I assign the same instance again", () => {
+            it("Then fails with an error", async () => {
                 try {
-                    const operation = await warehouseInstance.methods
-                        .assign_item_proxy(
-                            "KT1CKvaBW4kzvxChQpbG9GQPTiwtVX6kj1WY",
-                            20,
-                            1
-                        )
+                    await warehouseInstance.methods
+                        .assign_item(2, 1, "user_123")
                         .send();
-
-                    await operation.confirmation(1);
-
-                    console.error(
-                        "Will fail: Assign_item_proxy should throw an error since the inventory contract doesn't exist"
-                    );
-
-                    fail(
-                        "Assign_item_proxy should throw an error if the contract doesn't exist"
-                    );
                 } catch (err) {
-                    expect(err.message).toEqual("CONTRACT_NOT_FOUND");
+                    expect(err.message).toEqual("INSTANCE_ALREADY_ASSIGNED");
                 }
             });
+        });
+    });
+
+    describe("When I assign an item that doesn't exist", () => {
+        it("Then fails with an error", async () => {
+            try {
+                await warehouseInstance.methods
+                    .assign_item(1000, 1, "user_123")
+                    .send();
+            } catch (err) {
+                expect(err.message).toEqual("ITEM_DOESNT_EXIST");
+            }
         });
     });
 });

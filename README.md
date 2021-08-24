@@ -1,10 +1,6 @@
 # Tokenization Service Contracts
 
-The Tokenization Service's Smart Contracts.
-There are mostly 2 contracts:
-
-1. The Warehouse, which contains all tokenized items, including their full description and quantities.
-2. The Inventory, which stores a user's token updates over time.
+The Tokenization Service's Smart Contract.
 
 ## How to use the smart contracts:
 
@@ -14,7 +10,7 @@ There are mostly 2 contracts:
 npm install @jwalab/tokenization-service-contracts
 ```
 
-2. Deploy them with Taquito:
+2. Deploy with Taquito:
 
 Example deploying the warehouse contract:
 
@@ -46,7 +42,8 @@ Tezos.contract
     storage: {
         owner: accounts.alice.pkh,
         version: "1",
-        warehouse: MichelsonMap.fromLiteral({})
+        items: MichelsonMap.fromLiteral({}),
+        instances: MichelsonMap.fromLiteral({})
     },
   })
   .then((originationOp) => {
@@ -70,10 +67,9 @@ Our Smart Contracts are fully tested, please look at the `./test` folder to see 
 1. Items created in the Warehouse are truly immutable, their characteristics may never be altered. Just like a manufactured product once manufactured can't be altered. If a faulty item is minted, it must be discarded or sold as-is, or minted again.
 2. Items in the Warehouse don't belong to anyone and can't be transferred. Items in the Warehouse are not owned, only linked to an originator.
 3. Items in the Warehouse are semi-fungible. If an item is created with a quantity of 1000, all 1000 items have the same value and can be exchanged without destruction of value.
-4. When an item in the Warehouse is purchased, its new owner will have an Inventory created and the item will be added to that Inventory as a mutable copy of the original item. The Warehouse item remains unaltered, its total quantity remains unaltered, but there's one fewer item left to be purchased (available_quantity).
-5. When an item owner alters an item they have purchased, the changes are recorded in the Inventory. The item there is simply mutated. Since all mutations are recorded as an entrypoint call, we can recreate an audit trail of changes using an indexer.
-6. An item can be transferred between compatible inventories. Only the originator of the contract is able to initiate a transfer and only the owner of the Warehouse contract is able to mutate objects in the inventory (not yet implemented).
-7. One more thing, an item in the Warehouse can be modified until the `no_update_after` timestamp is in the past. We call it an expiration date as it prevents items from being modified after that date. We say that when the item can't be modified anymore, it's frozen. An item can be frozen quickly by calling the appropriate entrypoint. Until the expiration date is reached, the date can be removed or pushed further in the future.
+4. When an item in the Warehouse is purchased, and item instance is created and assigned to an user. The Warehouse item remains unaltered, its total quantity remains unaltered, but there's one fewer item left to be purchased (available_quantity). The instance is now mutable and can evolve independently from other instances of the same item.
+5. An item's instance can be transferred to another user.
+6. One more thing, an item in the Warehouse can be modified until the it's marked as `frozen`. Only after an item has been frozen can it be assigned to a user, to prevent a user from purchasing an item which caracteristics can still change.
 
 ### Project Structure
 
@@ -100,22 +96,40 @@ npm run test
 
 ### Cost estimation:
 
+#### 0.1.0 integrated contract and Granada:
+
+| action                             | cost        |
+| ---------------------------------- | ----------- |
+| warehouse origination              | `0.57152ꜩ`  |
+| create warehouse item              | `0.032072ꜩ` |
+| Update same size warehouse item    | `0.001618ꜩ` |
+| Update smaller size warehouse item | `0.001588ꜩ` |
+| Update bigger size warehouse item  | `0.017936ꜩ` |
+| Freeze item                        | `0.001552ꜩ` |
+| Assign item to user                | `0.022876ꜩ` |
+| Update instance                    | `0.010594ꜩ` |
+| transfer instance to new user      | `0.001568ꜩ` |
+
 #### Granada:
 
-warehouse origination cost 0.451211ꜩ
-inventory origination cost 0.386428ꜩ
-create warehouse item cost 0.031179ꜩ
-Update same size warehouse item cost 0.000706ꜩ
-Update smaller size warehouse item cost 0.00068ꜩ
-Update bigger size warehouse item cost 0.017023ꜩ
-Transfer item to inventory 0.020832ꜩ
+| action                             | cost        |
+| ---------------------------------- | ----------- |
+| warehouse origination              | `0.451211ꜩ` |
+| inventory origination              | `0.386428ꜩ` |
+| create warehouse item              | `0.031179ꜩ` |
+| Update same size warehouse item    | `0.000706ꜩ` |
+| Update smaller size warehouse item | `0.00068ꜩ`  |
+| Update bigger size warehouse item  | `0.017023ꜩ` |
+| Transfer item to inventory         | `0.020832ꜩ` |
 
 #### Florence:
 
-warehouse origination cost 0.451804ꜩ
-inventory origination cost 0.386914ꜩ
-create warehouse item cost 0.03179ꜩ
-Update same size warehouse item cost 0.001335ꜩ
-Update smaller size warehouse item cost 0.001305ꜩ
-Update bigger size warehouse item cost 0.017653ꜩ
-Transfer item to inventory 0.022413ꜩ
+| action                             | cost        |
+| ---------------------------------- | ----------- |
+| warehouse origination              | `0.451804ꜩ` |
+| inventory origination              | `0.386914ꜩ` |
+| create warehouse item              | `0.03179ꜩ`  |
+| Update same size warehouse item    | `0.001335ꜩ` |
+| Update smaller size warehouse item | `0.001305ꜩ` |
+| Update bigger size warehouse item  | `0.017653ꜩ` |
+| Transfer item to inventory         | `0.022413ꜩ` |

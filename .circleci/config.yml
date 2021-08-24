@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-    node: circleci/node@4.1.1
+    node: circleci/node@4.7.0
 jobs:
     lint:
         executor: node/default
@@ -16,7 +16,7 @@ jobs:
             - run: npm install
             - run: docker run -d -p 20000:20000 -e block_time=2 tqtezos/flextesa:20210602 granabox start
             - run: npm run compile
-            - run: sleep 20
+            - run: sleep 30
             - run: npm run test
 workflows:
     tests:

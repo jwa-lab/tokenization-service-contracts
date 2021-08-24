@@ -1,18 +1,25 @@
-async function getInventoryItemAt(storage, userId, itemId, instanceNumber) {
-    const user_inventory = await storage.get(userId);
-    const instance_map = Object.fromEntries(user_inventory.entries())[String(itemId)];
-    return inventoryItemToObject(Object.fromEntries(instance_map.entries())[String(instanceNumber)]);
+async function getWarehouseInstanceAt(storage, itemId, instanceNumber) {
+    const instanceObject = await storage.instances.get({
+        item_id: itemId,
+        instance_number: instanceNumber
+    });
+
+    return warehouseInstanceToObject(instanceObject);
 }
 
-async function hasInventoryItemAt(storage, userId, itemId, instanceNumber) {
-    const user_inventory = await storage.get(userId);
-    const instance_map = Object.fromEntries(user_inventory.entries())[String(itemId)];
-    return Boolean(Object.fromEntries(instance_map.entries())[String(instanceNumber)]);
+async function hasWarehouseInstanceAt(storage, itemId, instanceNumber) {
+    const instanceObject = await storage.instances.get({
+        item_id: itemId,
+        instance_number: instanceNumber
+    });
+
+    return Boolean(instanceObject);
 }
 
-function inventoryItemToObject(itemData) {
+function warehouseInstanceToObject(michelsonObject) {
     return {
-        data: Object.fromEntries(itemData.entries())
+        user_id: michelsonObject.user_id,
+        data: Object.fromEntries(michelsonObject.data.entries())
     };
 }
 
@@ -35,17 +42,15 @@ async function originateContract(tezos, code, storage) {
 
     const { contractAddress } = originatonOperation;
 
-    console.log('contract deployed at', contractAddress);
-
-    await originatonOperation.confirmation(1);
+    await originatonOperation.confirmation(1, 1);
 
     return tezos.contract.at(contractAddress);
 }
 
 module.exports = {
     warehouseItemToObject,
-    inventoryItemToObject,
-    getInventoryItemAt,
-    hasInventoryItemAt,
+    warehouseInstanceToObject,
+    getWarehouseInstanceAt,
+    hasWarehouseInstanceAt,
     originateContract
 };
