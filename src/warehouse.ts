@@ -14,19 +14,29 @@ export interface MichelsonWarehouseItem {
     item_id: BigNumber;
     name: string;
     total_quantity: BigNumber;
-    [key: string]:
-        | MichelsonMap<string, string>
-        | boolean
-        | string
-        | BigNumber;
+    [key: string]: MichelsonMap<string, string> | boolean | string | BigNumber;
 }
 
-export type WarehouseBigMap = MichelsonMap<string, MichelsonWarehouseItem>;
+export interface DataField {
+    [k: string]: string;
+}
+
+export interface InstancesKey {
+    item_id: number;
+    instance_number: number;
+}
+
+export type ItemsBigMap = MichelsonMap<string, MichelsonWarehouseItem>;
+export type InstancesBigMap = MichelsonMap<
+    InstancesKey,
+    MichelsonWarehouseItem
+>;
 
 export interface WarehouseStorage {
     owner: string;
     version: string;
-    warehouse: WarehouseBigMap;
+    items: ItemsBigMap;
+    instances: InstancesBigMap;
 }
 
 export interface WarehouseContract
@@ -48,22 +58,29 @@ export interface WarehouseContract
             frozen: boolean,
             item_id: number,
             name: string,
-            no_update_after: string | undefined,
             total_quantity: number
         ): ContractMethod<ContractProvider>;
 
         freeze_item(item_id: number): ContractMethod<ContractProvider>;
 
-        assign_item_proxy(
-            inventory_address: string,
+        assign_item(
             item_id: number,
-            instance_number: number
+            instance_number: number,
+            user_id: string
+        ): ContractMethod<ContractProvider>;
+
+        update_instance(
+            item_id: number,
+            instance_number: number,
+            data: MichelsonMap<string, string>
+        ): ContractMethod<ContractProvider>;
+
+        transfer_instance(
+            item_id: number,
+            instance_number: number,
+            user_id: string
         ): ContractMethod<ContractProvider>;
     };
-}
-
-export interface WarehouseData {
-    [k: string]: string;
 }
 
 export interface JSONWarehouseItem {
@@ -73,11 +90,7 @@ export interface JSONWarehouseItem {
     item_id: number;
     name: string;
     total_quantity: number;
-    [key: string]: 
-        | { [k: string]: string }
-        | boolean
-        | string
-        | number;
+    [key: string]: { [k: string]: string } | boolean | string | number;
 }
 
 export type LinearWarehouseItem = [
@@ -91,7 +104,7 @@ export type LinearWarehouseItem = [
 
 export class WarehouseItem {
     readonly available_quantity: BigNumber;
-    readonly data: WarehouseData;
+    readonly data: DataField;
     readonly frozen: boolean;
     readonly item_id: BigNumber;
     readonly name: string;
@@ -102,7 +115,7 @@ export class WarehouseItem {
             object,
             "available_quantity"
         ) as BigNumber;
-        this.data = getKey(object, "data") as WarehouseData;
+        this.data = getKey(object, "data") as DataField;
         this.frozen = getKey(object, "frozen") as boolean;
         this.item_id = getKey(object, "item_id") as BigNumber;
         this.name = object.name as string;
@@ -137,7 +150,7 @@ export class WarehouseItem {
         };
     }
 
-    private validateData(data: WarehouseData): void {
+    private validateData(data: DataField): void {
         if (Object.values(data).some((datum) => typeof datum !== "string")) {
             throw new Error(`WarehouseItem: Data must be 'string'`);
         }

@@ -2,7 +2,6 @@ const { TezosToolkit, MichelsonMap } = require("@taquito/taquito");
 const { InMemorySigner } = require("@taquito/signer");
 
 const warehouseContract = require("../build/contracts/warehouse.json");
-const inventoryContract = require("../build/contracts/inventory.json");
 
 const Tezos = new TezosToolkit("http://localhost:20000");
 Tezos.setProvider({
@@ -19,7 +18,8 @@ async function originateWarehouse() {
         storage: {
             owner: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
             version: "1",
-            warehouse: MichelsonMap.fromLiteral({})
+            items: MichelsonMap.fromLiteral({}),
+            instances: MichelsonMap.fromLiteral({})
         }
     });
 
@@ -28,18 +28,7 @@ async function originateWarehouse() {
     await originationOp.confirmation(1, 1);
 }
 
-async function originateInventory() {
-    const originationOp = await Tezos.contract.originate({
-        code: inventoryContract,
-        storage: MichelsonMap.fromLiteral({})
-    });
-
-    context.inventoryAddress = originationOp.contractAddress;
-
-    await originationOp.confirmation(1, 1);
-}
-
-async function originateWarehouseItem(...item) {
+async function addItem(...item) {
     const contract = await Tezos.contract.at(context.warehouseAddress);
 
     const originationOp = await contract.methods.add_item(...item).send();
@@ -47,7 +36,7 @@ async function originateWarehouseItem(...item) {
     await originationOp.confirmation(1, 1);
 }
 
-async function updateWarehouseItem(...item) {
+async function updateItem(...item) {
     const contract = await Tezos.contract.at(context.warehouseAddress);
 
     const originationOp = await contract.methods.update_item(...item).send();
@@ -55,11 +44,39 @@ async function updateWarehouseItem(...item) {
     await originationOp.confirmation(1, 1);
 }
 
-async function transferWarehouseItem(item_id, instance_id) {
+async function freezeItem(id) {
+    const contract = await Tezos.contract.at(context.warehouseAddress);
+
+    const originationOp = await contract.methods.freeze_item(id).send();
+
+    await originationOp.confirmation(1, 1);
+}
+
+async function assignItem(itemId, instanceNumber, userId) {
     const contract = await Tezos.contract.at(context.warehouseAddress);
 
     const originationOp = await contract.methods
-        .assign_item_proxy(context.inventoryAddress, item_id, instance_id)
+        .assign_item(itemId, instanceNumber, userId)
+        .send();
+
+    await originationOp.confirmation(1, 1);
+}
+
+async function updateInstance(itemId, instanceNumber, data) {
+    const contract = await Tezos.contract.at(context.warehouseAddress);
+
+    const originationOp = await contract.methods
+        .update_instance(itemId, instanceNumber, data)
+        .send();
+
+    await originationOp.confirmation(1, 1);
+}
+
+async function transferInstance(itemId, instanceNumber, userId) {
+    const contract = await Tezos.contract.at(context.warehouseAddress);
+
+    const originationOp = await contract.methods
+        .transfer_instance(itemId, instanceNumber, userId)
         .send();
 
     await originationOp.confirmation(1, 1);
@@ -85,70 +102,88 @@ async function estimateCost(name, operation) {
     try {
         await estimateCost("warehouse origination cost", originateWarehouse);
 
-        await estimateCost("inventory origination cost", originateInventory);
-
         await estimateCost(
             "create warehouse item cost",
-            originateWarehouseItem.bind(
+            addItem.bind(
                 null,
                 10,
                 MichelsonMap.fromLiteral({
                     XP: "97"
                 }),
+                false,
                 0,
                 "Karim Benzema",
-                undefined,
                 10
             )
         );
 
         await estimateCost(
             "Update same size warehouse item cost",
-            updateWarehouseItem.bind(
+            updateItem.bind(
                 null,
                 10,
                 MichelsonMap.fromLiteral({
                     XP: "10"
                 }),
+                false,
                 0,
                 "Same length ~",
-                undefined,
                 10
             )
         );
 
         await estimateCost(
             "Update smaller size warehouse item cost",
-            updateWarehouseItem.bind(
+            updateItem.bind(
                 null,
                 10,
                 MichelsonMap.fromLiteral({}),
+                false,
                 0,
                 "Same",
-                undefined,
                 10
             )
         );
 
         await estimateCost(
             "Update bigger size warehouse item cost",
-            updateWarehouseItem.bind(
+            updateItem.bind(
                 null,
                 10,
                 MichelsonMap.fromLiteral({
                     XP: "10",
                     CLUB: "real madrid"
                 }),
+                false,
                 0,
                 "this is a much bigger item or at least a bit bigger",
-                undefined,
                 10
             )
         );
 
+        await estimateCost("Freeze item cost", freezeItem.bind(null, 0));
+
         await estimateCost(
-            "Transfer item to inventory",
-            transferWarehouseItem.bind(null, 0, 1)
+            "Assign item to user cost",
+            assignItem.bind(null, 0, 1, "user_123")
+        );
+
+        await estimateCost(
+            "Update instance cost",
+            updateInstance.bind(
+                null,
+                0,
+                1,
+                MichelsonMap.fromLiteral({
+                    XP: "99",
+                    CLUB: "JUVE"
+                })
+            )
+        );
+
+        await estimateCost(
+            "transfer instance to new user cost",
+            transferInstance.bind(null, 0, 1, "user_124")
         );
     } catch (err) {
         console.log(err);

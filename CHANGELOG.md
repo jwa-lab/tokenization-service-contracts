@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0
+
+-   Complete overhaul of the contracts. Warehouse and Inventory are now merged
+    into one contract with 2 bigmaps. Instances don't live in a new contract but in a collocated bigmap.
+    The goal was to reduce the cost of operation and the code's complexity.
+-   Update cost estimation script
+-   Upgrade to Taquito 10
+
 ## 0.0.14
 
 -   Add missing type for transfer_item method

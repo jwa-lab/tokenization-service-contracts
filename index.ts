@@ -1,5 +1,4 @@
-export * from "./src/inventoryItem";
-export * from "./src/warehouseItem";
+export * from "./src/warehouse";
 
 export interface Contract {
     contractName: string;
@@ -10,10 +9,6 @@ const contracts = {
     warehouse: {
         contractName: "Warehouse",
         michelson: require("./warehouse.json")
-    },
-    inventory: {
-        contractName: "Inventory",
-        michelson: require("./inventory.json")
     }
 } as {
     [k: string]: Contract;

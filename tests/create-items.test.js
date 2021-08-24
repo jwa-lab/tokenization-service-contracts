@@ -1,10 +1,7 @@
 const { TezosToolkit, MichelsonMap } = require("@taquito/taquito");
 const { InMemorySigner } = require("@taquito/signer");
 
-const {
-    warehouseItemToObject,
-    originateContract
-} = require("./utils");
+const { warehouseItemToObject, originateContract } = require("./utils");
 
 const warehouseContract = require("../build/contracts/warehouse.json");
 
@@ -24,7 +21,8 @@ describe("Given Warehouse is deployed", () => {
         warehouseInstance = await originateContract(tezos, warehouseContract, {
             owner: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
             version: "1",
-            warehouse: MichelsonMap.fromLiteral({})
+            items: MichelsonMap.fromLiteral({}),
+            instances: MichelsonMap.fromLiteral({})
         });
     });
 
@@ -69,7 +67,7 @@ describe("Given Warehouse is deployed", () => {
         });
 
         it("Then adds the item to the warehouse", async () => {
-            const item = await storage.warehouse.get("0");
+            const item = await storage.items.get("0");
             const obj = warehouseItemToObject(item);
 
             expect(obj).toEqual({
@@ -135,7 +133,7 @@ describe("Given Warehouse is deployed", () => {
             });
 
             it("Then updates the item in the warehouse", async () => {
-                const item = await storage.warehouse.get("0");
+                const item = await storage.items.get("0");
                 const obj = warehouseItemToObject(item);
 
                 expect(obj).toEqual({
@@ -275,9 +273,7 @@ describe("Given Warehouse is deployed", () => {
                     "Will fail: Update_Item should throw an Error if the item is frozen"
                 );
 
-                fail(
-                    "Update_Item should throw an Error if the item is frozen"
-                );
+                fail("Update_Item should throw an Error if the item is frozen");
             } catch (err) {
                 expect(err.message).toEqual("ITEM_IS_FROZEN");
             }

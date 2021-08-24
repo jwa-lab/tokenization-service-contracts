@@ -1,6 +1,6 @@
 {
     "name": "@jwalab/tokenization-service-contracts",
-    "version": "0.0.14",
+    "version": "0.1.0",
     "files": [
         "index.js",
         "dist",
@@ -8,7 +8,7 @@
     ],
     "description": "Tokenization Service's Smart Contracts",
     "devDependencies": {
-        "@taquito/signer": "^9.1.1",
+        "@taquito/signer": "^10.1.0",
         "husky": "7.0.0",
         "jest": "^27.0.6",
         "prettier": "2.3.2",
