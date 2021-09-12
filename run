@@ -2,8 +2,10 @@
 
 set -euo pipefail
 
+LIGO_VERSION=0.24.0
+
 function compile-contract() {
-    docker run -v ${PWD}/contracts:/project/contracts --rm -i ligolang/ligo:next \
+    docker run -v ${PWD}/contracts:/project/contracts --rm -i ligolang/ligo:${LIGO_VERSION} \
         compile-contract --michelson-format=json \
          /project/contracts/${1} ${2}
 }
@@ -12,6 +14,15 @@ function compile-contract() {
 function compile-contracts() {
     mkdir -p ./build/contracts
     compile-contract "Warehouse.ligo" "main" > ${PWD}/build/contracts/warehouse.json
+}
+
+function pretty-print-contract() {
+    docker run -v ${PWD}/contracts:/project/contracts --rm -i ligolang/ligo:${LIGO_VERSION} \
+        pretty-print -s pascaligo /project/contracts/${1}
+}
+
+function pretty-print-contracts() {
+    pretty-print-contract "Warehouse.ligo"
 }
 
 function prepare-dist() {

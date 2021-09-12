@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+-   An item doesn't need to be frozen before it can be assigned. A user may be assigned an item that can still change
+    but it's an agreement between an item editor and the user.
+-   Ensure that the contract owner is the only user allowed to execute the contract for security reasons.
+
 ## 0.1.0
 
 -   Complete overhaul of the contracts. Warehouse and Inventory are now merged
