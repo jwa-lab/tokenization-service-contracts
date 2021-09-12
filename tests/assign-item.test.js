@@ -99,47 +99,14 @@ describe("Given Warehouse is deployed", () => {
                             .send();
 
                         console.error(
-                            "Will fail: Assign_item_proxy should throw an error since the available_quantity is 0n"
+                            "Will fail: Assign_item should throw an error since the available_quantity is 0n"
                         );
 
                         fail(
-                            "Assign_item_proxy should throw an error if the available_quantity is 0n"
+                            "Assign_item should throw an error if the available_quantity is 0n"
                         );
                     } catch (err) {
                         expect(err.message).toEqual("NO_AVAILABLE_ITEM");
-                    }
-                });
-            });
-        });
-
-        describe("When I add a non frozen item with a quantity of 1", () => {
-            beforeAll(async () => {
-                const operation = await warehouseInstance.methods
-                    .add_item(
-                        1,
-                        MichelsonMap.fromLiteral({
-                            XP: "97"
-                        }),
-                        false,
-                        1,
-                        "Karim Benzema",
-                        1
-                    )
-                    .send();
-
-                await operation.confirmation(1);
-            });
-
-            describe("And I assign an instance", () => {
-                it("Then fails with an error", async () => {
-                    try {
-                        await warehouseInstance.methods
-                            .assign_item(1, 1, "user_123")
-                            .send();
-                    } catch (err) {
-                        expect(err.message).toEqual(
-                            "ITEM_MUST_BE_FROZEN_BEFORE_ASSIGN"
-                        );
                     }
                 });
             });

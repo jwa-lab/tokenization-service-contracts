@@ -67,9 +67,9 @@ Our Smart Contracts are fully tested, please look at the `./test` folder to see 
 1. Items created in the Warehouse are truly immutable, their characteristics may never be altered. Just like a manufactured product once manufactured can't be altered. If a faulty item is minted, it must be discarded or sold as-is, or minted again.
 2. Items in the Warehouse don't belong to anyone and can't be transferred. Items in the Warehouse are not owned, only linked to an originator.
 3. Items in the Warehouse are semi-fungible. If an item is created with a quantity of 1000, all 1000 items have the same value and can be exchanged without destruction of value.
-4. When an item in the Warehouse is purchased, and item instance is created and assigned to an user. The Warehouse item remains unaltered, its total quantity remains unaltered, but there's one fewer item left to be purchased (available_quantity). The instance is now mutable and can evolve independently from other instances of the same item.
+4. When an item in the Warehouse is purchased, and item instance is created and assigned to a user. The Warehouse item remains unaltered, its total quantity remains unaltered, but there's one fewer item left to be purchased (available_quantity). The instance is now mutable and can evolve independently from other instances of the same item.
 5. An item's instance can be transferred to another user.
-6. One more thing, an item in the Warehouse can be modified until the it's marked as `frozen`. Only after an item has been frozen can it be assigned to a user, to prevent a user from purchasing an item which caracteristics can still change.
+6. One more thing, an item in the Warehouse can actually be modified until the it's marked as `frozen`.
 
 ### Project Structure
 
@@ -95,6 +95,20 @@ npm run test
 ```
 
 ### Cost estimation:
+
+#### 0.1.1 with security
+
+| action                             | cost        |
+| ---------------------------------- | ----------- |
+| warehouse origination              | `0.566903ꜩ` |
+| create warehouse item              | `0.031202ꜩ` |
+| Update same size warehouse item    | `0.000729ꜩ` |
+| Update smaller size warehouse item | `0.000703ꜩ` |
+| Update bigger size warehouse item  | `0.017045ꜩ` |
+| Freeze item                        | `0.000675ꜩ` |
+| Assign item to user                | `0.021992ꜩ` |
+| Update instance                    | `0.009724ꜩ` |
+| transfer instance to new user      | `0.000698ꜩ` |
 
 #### 0.1.0 integrated contract and Granada:
 
