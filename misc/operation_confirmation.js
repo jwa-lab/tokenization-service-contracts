@@ -17,7 +17,7 @@ async function originateWarehouse() {
     const originationOp = await Tezos.contract.originate({
         code: warehouseContract,
         storage: {
-            owner: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
+            owners: ["tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"],
             version: "1",
             items: MichelsonMap.fromLiteral({}),
             instances: MichelsonMap.fromLiteral({})
@@ -45,7 +45,7 @@ async function updateItem(...item) {
 
 (async function run() {
     try {
-        console.log('originating warehouse', new Date())
+        console.log("originating warehouse", new Date());
         await originateWarehouse();
 
         console.log(`originated at`, context.warehouseAddress, new Date());
@@ -59,9 +59,9 @@ async function updateItem(...item) {
             0,
             "Karim Benzema",
             10
-        )
+        );
 
-        console.log(JSON.stringify(operation.hash))
+        console.log(JSON.stringify(operation.hash));
 
         // console.log('item generated')
 
@@ -80,7 +80,6 @@ async function updateItem(...item) {
 
         // console.log('counter', (await Tezos.rpc.getContract(signer)), new Date());
 
-
         // await updateItem(
         //     10,
         //     MichelsonMap.fromLiteral({
@@ -94,7 +93,6 @@ async function updateItem(...item) {
 
         // console.log("generated item 1", new Date());
         // console.log('counter', (await Tezos.rpc.getContract(signer)));
-
 
         // await addItem(
         //     10,

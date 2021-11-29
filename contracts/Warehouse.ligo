@@ -30,6 +30,8 @@ type parameter is
 |   Assign_item of assign_parameter
 |   Update_instance of update_instance_parameter
 |   Transfer_instance of transfer_parameter
+|   Add_owner of address
+|   Remove_owner of address
 
 type instances_key is record [
     item_id: nat;
@@ -37,7 +39,7 @@ type instances_key is record [
 ]
 
 type storage is record [
-    owner: address;
+    owners: set (address);
     version: string;
     items: big_map (nat, item_metadata);
     instances: big_map (instances_key, instance_metadata);
@@ -165,11 +167,26 @@ function transfer (const params: transfer_parameter; var storage: storage): retu
         end;
     } with ((nil: list (operation)), storage)
 
+function add_owner (const owner: address; var storage: storage): return is
+    block {
+        storage.owners := Set.add(owner, storage.owners);
+    } with ((nil: list (operation)), storage)
+
+function remove_owner (const owner: address; var storage: storage): return is
+    block {
+        if (Set.size (storage.owners) <= 1n) then {
+            failwith("REQUIRES_AT_LEAST_ONE_OWNER");
+        } else {
+            storage.owners := Set.remove(owner, storage.owners);
+        }
+    } with ((nil: list (operation)), storage)
+
+
 function main (const action: parameter; const storage : storage): return is
     block {
-        if (Tezos.sender =/= storage.owner) then {
+        if (Set.mem(Tezos.sender, storage.owners)) then skip else {
             failwith ("ILLEGAL_SENDER");
-        } else skip;
+        }
     } with case action of
         Add_item (i) -> add (i, storage)
     |   Update_item (i) -> update (i, storage)
@@ -177,4 +194,6 @@ function main (const action: parameter; const storage : storage): return is
     |   Assign_item (ap) -> assign (ap, storage)
     |   Update_instance (uip) -> update_instance (uip, storage)
     |   Transfer_instance (tp) -> transfer (tp, storage)
+    |   Add_owner (a) -> add_owner (a, storage)
+    |   Remove_owner (a) -> remove_owner (a, storage)
     end

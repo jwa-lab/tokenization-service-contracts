@@ -1,6 +1,6 @@
 {
     "name": "@jwalab/tokenization-service-contracts",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "files": [
         "index.js",
         "dist",
@@ -18,7 +18,7 @@
         "prepublishOnly": "npm run compile && npm run prepare-dist && npm run lint-fix && tsc",
         "lint": "prettier --check .",
         "lint-fix": "prettier --write .",
-        "test": "jest --runInBand --testTimeout 20000 tests",
+        "test": "jest --runInBand --testTimeout 30000 tests",
         "prepare-dist": "./run prepare-dist",
         "compile": "./run compile-contracts"
     },

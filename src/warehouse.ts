@@ -33,7 +33,7 @@ export type InstancesBigMap = MichelsonMap<
 >;
 
 export interface WarehouseStorage {
-    owner: string;
+    owners: string[];
     version: string;
     items: ItemsBigMap;
     instances: InstancesBigMap;
@@ -80,6 +80,10 @@ export interface WarehouseContract
             instance_number: number,
             user_id: string
         ): ContractMethod<ContractProvider>;
+
+        add_owner(address: string): ContractMethod<ContractProvider>;
+
+        remove_owner(address: string): ContractMethod<ContractProvider>;
     };
 }
 

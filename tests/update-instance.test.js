@@ -19,7 +19,7 @@ describe("Given Warehouse is deployed", () => {
         });
 
         warehouseInstance = await originateContract(tezos, warehouseContract, {
-            owner: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
+            owners: ["tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"],
             version: "1",
             items: MichelsonMap.fromLiteral({}),
             instances: MichelsonMap.fromLiteral({})
