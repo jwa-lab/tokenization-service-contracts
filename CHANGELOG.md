@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+-   Breaking change! The contract storage is initialized with a set of addresses instead of a single address
+-   It's now possible to have multiple owners for the storage
+
 ## 0.1.1
 
 -   An item doesn't need to be frozen before it can be assigned. A user may be assigned an item that can still change

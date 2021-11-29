@@ -40,7 +40,7 @@ Tezos.contract
   .originate({
     code: tokenizationServiceContracts.warehouse.michelson,
     storage: {
-        owner: accounts.alice.pkh,
+        owners: ["tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"],
         version: "1",
         items: MichelsonMap.fromLiteral({}),
         instances: MichelsonMap.fromLiteral({})
@@ -95,6 +95,20 @@ npm run test
 ```
 
 ### Cost estimation:
+
+#### 0.2.0 with multiple owners
+
+| action                             | cost        |
+| ---------------------------------- | ----------- |
+| warehouse origination              | `0.626894ꜩ` |
+| create warehouse item              | `0.031207ꜩ` |
+| Update same size warehouse item    | `0.000733ꜩ` |
+| Update smaller size warehouse item | `0.000708ꜩ` |
+| Update bigger size warehouse item  | `0.017005ꜩ` |
+| Freeze item                        | `0.000680ꜩ` |
+| Assign item to user                | `0.021997ꜩ` |
+| Update instance                    | `0.009729ꜩ` |
+| transfer instance to new user      | `0.000703ꜩ` |
 
 #### 0.1.1 with security
 

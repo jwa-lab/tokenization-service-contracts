@@ -19,7 +19,7 @@ describe("Given Warehouse is deployed", () => {
         });
 
         warehouseInstance = await originateContract(tezos, warehouseContract, {
-            owner: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
+            owners: ["tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"],
             version: "1",
             items: MichelsonMap.fromLiteral({}),
             instances: MichelsonMap.fromLiteral({})
@@ -37,10 +37,10 @@ describe("Given Warehouse is deployed", () => {
             expect(storage.version).toEqual("1");
         });
 
-        it("Then returns the owner", () => {
-            expect(storage.owner).toEqual(
+        it("Then returns the owners", () => {
+            expect(storage.owners).toEqual([
                 "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"
-            );
+            ]);
         });
     });
 
